@@ -3,4 +3,5 @@ __pycache__/
 *.pyo
 *.egg-info/
 *.tmp
+*.claude
 convert_to_single_safetensors.py

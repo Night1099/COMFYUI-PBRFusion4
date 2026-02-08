@@ -42,12 +42,7 @@ Generates a depth map and normal map from an input image.
 
 ## Requirements
 
-- ComfyUI
-- PyTorch with CUDA (recommended) or MPS/CPU
 - diffusers
-- transformers
-- safetensors
-- opencv-python
 
 ## License
 

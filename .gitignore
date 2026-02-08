@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.tmp
+convert_to_single_safetensors.py

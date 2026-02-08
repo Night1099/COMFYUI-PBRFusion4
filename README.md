@@ -1,3 +1,5 @@
+[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Weights-blue)](https://huggingface.co/NightRaven109/PBRFusion4)
+
 # COMFYUI-PBRFusion4
 
 ComfyUI custom nodes for generating depth maps and normal maps from images using the PBRFusion4 diffusion model. Designed for PBR texture workflows.

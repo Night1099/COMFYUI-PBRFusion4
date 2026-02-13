@@ -1,0 +1,29 @@
+[project]
+name = "COMFYUI-PBRFusion4"
+description = "PBR Texture Generation Diffusion Model. Generate Normals and Depth from Baked Textures"
+version = "1.0.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "huggingface-hub",
+    "numpy",
+    "diffusers",
+    "pillow>=10.0.1",
+    "pydantic==2.11.5",
+    "requests",
+    "torch",
+]
+classifiers = [
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Repository = "https://github.com/Night1099/COMFYUI-PBRFusion4"
+Documentation = "https://github.com/Night1099/COMFYUI-PBRFusion4/blob/main/README.md"
+"Bug Tracker" = "https://github.com/Night1099/COMFYUI-PBRFusion4/issues"
+
+#  Used by Comfy Registry https://registry.comfy.org/
+[tool.comfy]
+PublisherId = "Night1099"
+DisplayName = "PBRFusion 4 Nodes"
+requires-comfyui = ">=0.3.72"

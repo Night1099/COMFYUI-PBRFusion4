@@ -1,5 +1,5 @@
 [project]
-name = "COMFYUI-PBRFusion4"
+name = "ComfyUI-PBRFusion4"
 description = "PBR Texture Generation Diffusion Model. Generate Normals and Depth from Baked Textures"
 version = "1.0.0"
 license = { file = "LICENSE" }
@@ -8,9 +8,6 @@ dependencies = [
     "huggingface-hub",
     "numpy",
     "diffusers",
-    "pillow>=10.0.1",
-    "pydantic==2.11.5",
-    "requests",
     "torch",
 ]
 classifiers = [

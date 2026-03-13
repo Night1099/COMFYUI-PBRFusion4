@@ -11,7 +11,7 @@ Clone this repo into your ComfyUI `custom_nodes` folder:
 
 ```
 cd ComfyUI/custom_nodes
-git clone https://github.com/NightRaven109/COMFYUI-PBRFusion4.git
+git clone https://github.com/NightRaven109/COMFYUI-PBRFusion4
 ```
 
 The model (`PBRFusion4.safetensors`, ~4.1 GB) is **automatically downloaded** on first use from HuggingFace and saved to `ComfyUI/models/pbrfusion4/`. No manual download required.

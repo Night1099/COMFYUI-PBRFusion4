@@ -21,6 +21,6 @@ Documentation = "https://github.com/Night1099/COMFYUI-PBRFusion4/blob/main/READM
 
 #  Used by Comfy Registry https://registry.comfy.org/
 [tool.comfy]
-PublisherId = "Night1099"
+PublisherId = "night1099"
 DisplayName = "PBRFusion 4 Nodes"
 requires-comfyui = ">=0.3.72"

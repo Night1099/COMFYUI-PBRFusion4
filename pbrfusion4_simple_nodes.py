@@ -330,6 +330,45 @@ def compute_normal_from_height(height_map, scale=2.0):
     return normal_map[0]
 
 
+def compute_normal_scharr(image_rgb, scale_xy=1.0, fix_black=True):
+    """
+    Compute normal map using Scharr operators on an RGB image.
+    Matches the WSL NormalMapSimple + ConvertNormals pipeline exactly.
+
+    Args:
+        image_rgb: numpy array (H, W, 3) uint8 RGB image
+        scale_xy: float, scaling factor for XY gradients
+        fix_black: bool, fix near-black artifacts in the normal map
+
+    Returns:
+        numpy array: normal map (H, W, 3) in range [0, 255] uint8
+    """
+    t = image_rgb.astype(np.float32) / 255.0
+    L = np.mean(t[:, :, :3], axis=2)
+
+    t[:, :, 0] = cv2.Scharr(L, cv2.CV_32F, 1, 0, borderType=cv2.BORDER_REFLECT) * -1
+    t[:, :, 1] = cv2.Scharr(L, cv2.CV_32F, 0, 1, borderType=cv2.BORDER_REFLECT) * -1
+    t[:, :, 2] = 1.0
+
+    t_tensor = torch.from_numpy(t).unsqueeze(0)
+    t_tensor[:, :, :, :2] *= scale_xy
+    t_tensor[:, :, :, :3] = F.normalize(t_tensor[:, :, :, :3], dim=3) / 2 + 0.5
+
+    if fix_black:
+        key = torch.clamp(1 - t_tensor[:, :, :, 2] * 2, min=0, max=1)
+        t_tensor[:, :, :, 0] += key * 0.5
+        t_tensor[:, :, :, 1] += key * 0.5
+        t_tensor[:, :, :, 2] += key
+
+    t_norm = t_tensor[:, :, :, :3] * 2 - 1
+    lengths = torch.clamp(torch.sqrt(torch.sum(t_norm ** 2, dim=3, keepdim=True)), min=1e-6)
+    t_norm = t_norm / lengths
+    t_tensor[:, :, :, :3] = (t_norm + 1) / 2
+
+    result = (t_tensor[0].numpy() * 255).clip(0, 255).astype(np.uint8)
+    return result
+
+
 def infer_depth_pipe(pipe, test_image, task_name, device, optimize=True):
     """
     Run inference on a single pipeline
@@ -449,11 +488,17 @@ class PBRFusion4SimpleDepthAndNormalGenerator:
                     "max": 200.0,
                     "step": 1.0,
                 }),
+                "scharr_scale_xy": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 10.0,
+                    "step": 0.1,
+                }),
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE")
-    RETURN_NAMES = ("depth", "depth_filtered", "normal", "intensity")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE", "IMAGE")
+    RETURN_NAMES = ("depth", "depth_filtered", "normal", "normal_scharr", "intensity")
     FUNCTION = "generate"
     CATEGORY = "PBRFUSION4/Generation"
     DESCRIPTION = """
@@ -462,10 +507,11 @@ Simple version without seamless/tileable processing.
 - Deterministic depth estimation (no seed needed)
 - Depth map optimized for PBR workflows
 - Normal map generated from depth using Sobel operators
+- Scharr normal map output for higher precision gradients
 - Supports intensity blending for better detail preservation
 """
 
-    def generate(self, image, intensity_blend, opengl_normal, optimize, bilateral_d, bilateral_sigma_color, bilateral_sigma_space):
+    def generate(self, image, intensity_blend, opengl_normal, optimize, bilateral_d, bilateral_sigma_color, bilateral_sigma_space, scharr_scale_xy):
         """
         Generate depth and normal maps
 
@@ -543,6 +589,21 @@ Simple version without seamless/tileable processing.
         normal_tensor = torch.from_numpy(normal_display).float() / 255.0
         normal_tensor = normal_tensor.unsqueeze(0)  # Add batch dimension
 
+        # === SCHARR NORMAL MAP (bilateral filtered depth → blend → Scharr → fix_black → normalize) ===
+        depth_blurred_rgb = cv2.cvtColor(depth_filtered, cv2.COLOR_GRAY2RGB)
+        if intensity_blend > 0:
+            scharr_input = blend_numpy_images(depth_blurred_rgb, intensity_map, blend_factor=intensity_blend)
+        else:
+            scharr_input = depth_blurred_rgb
+
+        scharr_normal = compute_normal_scharr(scharr_input, scale_xy=scharr_scale_xy)
+
+        if not opengl_normal:
+            scharr_normal[:, :, 1] = 255 - scharr_normal[:, :, 1]
+
+        scharr_normal_tensor = torch.from_numpy(scharr_normal).float() / 255.0
+        scharr_normal_tensor = scharr_normal_tensor.unsqueeze(0)
+
         # Convert depth to RGB format for output
         depth_array = cv2.cvtColor(depth_normalized, cv2.COLOR_GRAY2RGB)
 
@@ -559,7 +620,7 @@ Simple version without seamless/tileable processing.
         intensity_tensor = torch.from_numpy(intensity_map).float() / 255.0
         intensity_tensor = intensity_tensor.unsqueeze(0)  # Add batch dimension
 
-        return (depth_tensor, depth_filtered_tensor, normal_tensor, intensity_tensor)
+        return (depth_tensor, depth_filtered_tensor, normal_tensor, scharr_normal_tensor, intensity_tensor)
 
 
 class NormalMapFlipY:

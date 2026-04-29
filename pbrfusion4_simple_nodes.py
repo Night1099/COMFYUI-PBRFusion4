@@ -92,6 +92,13 @@ def _load_from_single_safetensors(safetensors_path, dtype, device):
     te_config_dict = json.loads(metadata["text_encoder/config.json"])
     te_config = CLIPTextConfig(**te_config_dict)
     text_encoder = CLIPTextModel(te_config)
+    if any(k.startswith("text_model.") for k in te_sd) and not any(
+        k.startswith("text_model.") for k in text_encoder.state_dict()
+    ):
+        te_sd = {
+            k[len("text_model."):] if k.startswith("text_model.") else k: v
+            for k, v in te_sd.items()
+        }
     text_encoder.load_state_dict(te_sd)
     del te_sd
 

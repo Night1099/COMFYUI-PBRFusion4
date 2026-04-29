@@ -1,2 +1,7 @@
 diffusers>=0.28.0
-opencv-python
+huggingface-hub
+numpy
+opencv-python-headless
+safetensors
+torch
+transformers

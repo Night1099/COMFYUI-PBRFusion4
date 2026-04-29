@@ -1,14 +1,17 @@
 [project]
 name = "ComfyUI-PBRFusion4"
 description = "PBR Texture Generation Diffusion Model. Generate Normals and Depth from Baked Textures"
-version = "1.0.2"
+version = "1.0.3"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
+    "diffusers>=0.28.0",
     "huggingface-hub",
     "numpy",
-    "diffusers",
+    "opencv-python-headless",
+    "safetensors",
     "torch",
+    "transformers",
 ]
 classifiers = [
     "Operating System :: OS Independent",

@@ -46,6 +46,14 @@ Generates a depth map and normal map from an input image.
 ## Requirements
 
 - diffusers
+- huggingface-hub
+- numpy
+- opencv-python-headless
+- safetensors
+- torch
+- transformers
+
+The nodes use OpenCV for image processing without GUI features, so `opencv-python-headless` is sufficient for ComfyUI installs.
 
 ## License
 
